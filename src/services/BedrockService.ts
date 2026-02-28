@@ -1,18 +1,6 @@
 /**
  * AWS Bedrock Service
- * Handles communication with AWS Bedrock AI service
- * 
- * NOTE: Direct browser-to-Bedrock calls are not possible due to:
- * 1. CORS restrictions
- * 2. AWS SigV4 authentication complexity
- * 3. Security concerns with exposing AWS credentials in browser
- * 
- * This implementation provides a mock service for development.
- * For production, implement a backend proxy server that:
- * - Receives requests from this frontend
- * - Signs requests with AWS SigV4
- * - Forwards to AWS Bedrock
- * - Returns responses to frontend
+ * Handles communication with AWS Bedrock AI service using bearer token authentication
  */
 
 export interface BedrockMessage {
@@ -38,56 +26,84 @@ export class BedrockService {
   constructor(apiKey: string, region?: string, model?: string) {
     this.apiKey = apiKey
     this.region = region || 'us-east-1'
-    this.model = model || 'anthropic.claude-3-5-sonnet-20241022-v2:0'
-    // In production, this should point to your backend proxy
-    this.backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api/bedrock'
+    // Use inference profile instead of direct model ID for Claude 3.5 Sonnet v2
+    this.model = model || 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
+    this.backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://bedrock-runtime.us-east-1.amazonaws.com'
   }
 
   /**
-   * Send a message to AWS Bedrock via backend proxy
+   * Send a message to AWS Bedrock
    * 
    * @param messages - Array of conversation messages
    * @returns Promise with the AI response
    */
   async sendMessage(messages: BedrockMessage[]): Promise<BedrockResponse> {
     try {
-      // Check if backend URL is configured
-      if (!this.backendUrl || this.backendUrl.includes('localhost')) {
-        // Development mode - return mock response
-        return this.getMockResponse(messages)
+      // Format messages for AWS Bedrock Converse API
+      const formattedMessages = messages.map(msg => ({
+        role: msg.role,
+        content: [{ text: msg.content }]
+      }))
+
+      const requestBody = {
+        messages: formattedMessages,
+        inferenceConfig: {
+          maxTokens: 2048,
+          temperature: 0.7,
+          topP: 0.9
+        }
       }
 
-      // Production mode - call backend proxy
-      const response = await fetch(`${this.backendUrl}/chat`, {
+      console.log('Sending to Bedrock:', JSON.stringify(requestBody, null, 2))
+
+      // Build the correct endpoint URL
+      const baseUrl = this.backendUrl.replace(/\/(v1|api)\/?$/, '')
+      const endpoint = `${baseUrl}/model/${this.model}/converse`
+      
+      console.log('Endpoint URL:', endpoint)
+
+      // Call AWS Bedrock Converse API
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.apiKey}`
         },
-        body: JSON.stringify({
-          messages: messages,
-          model: this.model,
-          region: this.region,
-          inferenceConfig: {
-            maxTokens: 2048,
-            temperature: 0.7,
-            topP: 0.9
-          }
-        })
+        body: JSON.stringify(requestBody)
       })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Backend API error:', response.status, errorText)
-        throw new Error(`Backend API error: ${response.status} ${response.statusText}`)
+        console.error('Bedrock API error:', response.status, errorText)
+        
+        // Try to parse error details
+        try {
+          const errorData = JSON.parse(errorText)
+          console.error('Error details:', errorData)
+          throw new Error(`Bedrock API error: ${errorData.message || response.statusText}`)
+        } catch {
+          throw new Error(`Bedrock API error: ${response.status} ${response.statusText}`)
+        }
       }
 
       const data = await response.json()
+      console.log('Bedrock response:', JSON.stringify(data, null, 2))
       
+      // Parse AWS Bedrock Converse API response format
+      const content = data.output?.message?.content?.[0]?.text || 
+                     data.content?.[0]?.text
+      
+      if (!content) {
+        throw new Error('No content in response')
+      }
+
       return {
-        content: data.content || data.message || 'No response received',
+        content: content,
         model: this.model,
-        usage: data.usage
+        usage: data.usage ? {
+          inputTokens: data.usage.inputTokens || 0,
+          outputTokens: data.usage.outputTokens || 0
+        } : undefined
       }
     } catch (error) {
       console.error('Error calling Bedrock API:', error)
@@ -97,7 +113,7 @@ export class BedrockService {
         if (error.message.includes('401') || error.message.includes('403')) {
           throw new Error('Authentication failed. Please check your API key.')
         } else if (error.message.includes('404')) {
-          throw new Error('Backend endpoint not found. Please check configuration.')
+          throw new Error('Model or endpoint not found. Please check configuration.')
         } else if (error.message.includes('429')) {
           throw new Error('Rate limit exceeded. Please try again later.')
         } else if (error.message.includes('Failed to fetch')) {
@@ -110,46 +126,7 @@ export class BedrockService {
   }
 
   /**
-   * Mock response for development/testing
-   * Simulates AWS Bedrock responses
-   */
-  private async getMockResponse(messages: BedrockMessage[]): Promise<BedrockResponse> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    const lastMessage = messages[messages.length - 1]
-    const messageCount = messages.length
-
-    // Generate contextual mock responses
-    let mockContent = ''
-    
-    if (messageCount === 1) {
-      mockContent = `Hello! I'm a mock AI assistant. I received your message: "${lastMessage.content}". 
-
-To connect to real AWS Bedrock:
-1. Set up a backend proxy server
-2. Configure VITE_BACKEND_URL in your .env file
-3. Implement AWS SigV4 signing in your backend
-
-For now, I'm running in development mode with simulated responses.`
-    } else {
-      mockContent = `I understand you said: "${lastMessage.content}". This is message ${messageCount} in our conversation. 
-
-I'm currently running in mock mode. To enable real AI responses, you'll need to set up a backend proxy that can authenticate with AWS Bedrock using proper AWS credentials and SigV4 signing.`
-    }
-
-    return {
-      content: mockContent,
-      model: this.model,
-      usage: {
-        inputTokens: lastMessage.content.length,
-        outputTokens: mockContent.length
-      }
-    }
-  }
-
-  /**
-   * Stream a response from AWS Bedrock via backend proxy
+   * Stream a response from AWS Bedrock
    * 
    * @param messages - Array of conversation messages
    * @param onChunk - Callback for each chunk of the response
@@ -159,29 +136,23 @@ I'm currently running in mock mode. To enable real AI responses, you'll need to 
     onChunk: (chunk: string) => void
   ): Promise<void> {
     try {
-      // Check if backend URL is configured
-      if (!this.backendUrl || this.backendUrl.includes('localhost')) {
-        // Development mode - simulate streaming
-        const response = await this.getMockResponse(messages)
-        const words = response.content.split(' ')
-        for (const word of words) {
-          await new Promise(resolve => setTimeout(resolve, 50))
-          onChunk(word + ' ')
-        }
-        return
-      }
+      // Format messages for AWS Bedrock Converse API
+      const formattedMessages = messages.map(msg => ({
+        role: msg.role,
+        content: [{ text: msg.content }]
+      }))
 
-      // Production mode - call backend proxy with streaming
-      const response = await fetch(`${this.backendUrl}/chat/stream`, {
+      const baseUrl = this.backendUrl.replace(/\/(v1|api)\/?$/, '')
+      const endpoint = `${baseUrl}/model/${this.model}/converse-stream`
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.apiKey}`
         },
         body: JSON.stringify({
-          messages: messages,
-          model: this.model,
-          region: this.region,
+          messages: formattedMessages,
           inferenceConfig: {
             maxTokens: 2048,
             temperature: 0.7,
@@ -191,7 +162,7 @@ I'm currently running in mock mode. To enable real AI responses, you'll need to 
       })
 
       if (!response.ok) {
-        throw new Error(`Backend API error: ${response.status} ${response.statusText}`)
+        throw new Error(`Bedrock API error: ${response.status} ${response.statusText}`)
       }
 
       // Process the streaming response
@@ -221,8 +192,8 @@ I'm currently running in mock mode. To enable real AI responses, you'll need to 
               const data = JSON.parse(line.slice(6))
               
               // Extract text from response
-              if (data.text || data.content) {
-                onChunk(data.text || data.content)
+              if (data.contentBlockDelta?.delta?.text) {
+                onChunk(data.contentBlockDelta.delta.text)
               }
             } catch (e) {
               // Skip invalid JSON
@@ -244,12 +215,6 @@ I'm currently running in mock mode. To enable real AI responses, you'll need to 
    */
   async validateApiKey(): Promise<boolean> {
     try {
-      // In development mode, just check if key exists
-      if (!this.backendUrl || this.backendUrl.includes('localhost')) {
-        return !!(this.apiKey && this.apiKey.length > 0)
-      }
-
-      // In production, make a test request
       const testMessages: BedrockMessage[] = [
         { role: 'user', content: 'Hi' }
       ]
