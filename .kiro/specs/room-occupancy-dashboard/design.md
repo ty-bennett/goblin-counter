@@ -11,6 +11,7 @@ The design prioritizes clean visual hierarchy, smooth animations, and responsive
 ```mermaid
 graph TD
     A[Frontend Dashboard] -->|WebSocket| B[AWS API Gateway WebSocket]
+    A -.->|Fallback| J[Example Data Service]
     B --> C[Lambda Function]
     C --> D[DynamoDB]
     C --> E[CloudWatch Metrics]
@@ -21,11 +22,17 @@ graph TD
     H --> I[EventBridge]
     I --> C
     
+    J -.->|In-Memory| K[Example Data Constants]
+    
     style A fill:#e3f2fd
     style D fill:#fff3e0
     style B fill:#f3e5f5
     style G fill:#f3e5f5
+    style J fill:#e8f5e9
+    style K fill:#e8f5e9
 ```
+
+**Note**: Solid lines represent live data flow; dashed lines represent example/fallback data flow. Example data is stored in-memory and never interacts with the server database.
 
 ## Components and Interfaces
 
@@ -108,13 +115,14 @@ interface RoomStatusList {
 
 ### Component 4: WebSocketService
 
-**Purpose**: Manages real-time connection to AWS backend
+**Purpose**: Manages real-time connection to AWS backend with fallback to example data
 
 **Interface**:
 ```typescript
 interface WebSocketService {
   connectionUrl: string
   isConnected: boolean
+  useExampleData: boolean
   
   connect(): Promise<void>
   disconnect(): void
@@ -122,6 +130,8 @@ interface WebSocketService {
   unsubscribe(roomId: string): void
   onMessage(callback: (data: OccupancyUpdate) => void): void
   onError(callback: (error: Error) => void): void
+  switchToExampleData(): void
+  switchToLiveData(): void
 }
 ```
 
@@ -131,6 +141,29 @@ interface WebSocketService {
 - Subscribe to specific room updates
 - Parse incoming messages and trigger callbacks
 - Handle connection errors gracefully
+- Automatically fall back to example data when backend is unavailable
+- Provide manual toggle between live and example data modes
+
+### Component 5: ExampleDataService
+
+**Purpose**: Provides mock/example data for development, testing, and backup scenarios
+
+**Interface**:
+```typescript
+interface ExampleDataService {
+  getExampleRooms(): Room[]
+  getExampleOccupancyData(roomId: string, hours?: number): OccupancyDataPoint[]
+  simulateRealTimeUpdates(callback: (update: OccupancyUpdate) => void): void
+  stopSimulation(): void
+}
+```
+
+**Responsibilities**:
+- Provide pre-defined example room data
+- Generate realistic occupancy time-series data
+- Simulate real-time updates for testing purposes
+- Ensure example data never affects server database
+- Calculate status colors based on occupancy thresholds
 
 ## Data Models
 
@@ -212,6 +245,40 @@ interface WebSocketMessage {
 - `roomId` required for subscribe/unsubscribe actions
 - `timestamp` must be ISO 8601 format string
 
+### Model 5: ExampleDataPoint
+
+```typescript
+interface ExampleDataPoint {
+  time: Date
+  occupancy: number
+  status: 'green' | 'yellow' | 'red'
+}
+```
+
+**Validation Rules**:
+- `time` must be valid Date object
+- `occupancy` must be non-negative integer
+- `status` must be one of: 'green', 'yellow', 'red'
+- Status color mapping: green (0-40% capacity), yellow (41-75% capacity), red (76-100% capacity)
+
+### Model 6: ExampleRoom
+
+```typescript
+interface ExampleRoom {
+  id: string
+  name: string
+  maxCapacity: number
+  exampleData: ExampleDataPoint[]
+}
+```
+
+**Validation Rules**:
+- `id` must be non-empty string with 'example-' prefix
+- `name` must be non-empty string
+- `maxCapacity` must be positive integer
+- `exampleData` array must contain at least 1 data point
+- All occupancy values in `exampleData` must not exceed `maxCapacity`
+
 ## Sequence Diagrams
 
 ### Real-Time Occupancy Update Flow
@@ -260,9 +327,175 @@ sequenceDiagram
     Graph-->>User: Display updated graph
 ```
 
+### Example Data Fallback Flow
+
+```mermaid
+sequenceDiagram
+    participant UI as Dashboard UI
+    participant WS as WebSocket Service
+    participant Backend as AWS Backend
+    participant ExampleSvc as Example Data Service
+    
+    UI->>WS: connect()
+    WS->>Backend: Establish WebSocket
+    Backend-->>WS: Connection failed
+    WS->>WS: Retry with backoff (3 attempts)
+    Backend-->>WS: Still failing
+    WS->>ExampleSvc: switchToExampleData()
+    ExampleSvc-->>WS: Example rooms & data
+    WS-->>UI: Display example data
+    UI->>UI: Show "Using example data" indicator
+    
+    Note over WS,Backend: Backend becomes available
+    WS->>Backend: Reconnect successful
+    WS->>UI: switchToLiveData()
+    UI->>UI: Show "Connected to live data"
+```
+
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+
+## Example Data Implementation
+
+### Purpose
+
+The example data feature provides a fallback data source that:
+1. Enables dashboard functionality when the WebSocket backend is unavailable
+2. Supports development and testing without requiring backend infrastructure
+3. Demonstrates dashboard capabilities with realistic sample data
+4. Never interacts with or modifies the server database
+
+### Storage Mechanism
+
+Example data is stored as an in-memory TypeScript constant within the frontend codebase:
+
+```typescript
+// exampleData.ts
+export const EXAMPLE_ROOMS: ExampleRoom[] = [
+  {
+    id: 'example-conference-a',
+    name: 'Conference Room A',
+    maxCapacity: 50,
+    exampleData: [
+      { time: new Date('2024-01-15T09:00:00'), occupancy: 5, status: 'green' },
+      { time: new Date('2024-01-15T10:00:00'), occupancy: 15, status: 'green' },
+      { time: new Date('2024-01-15T11:00:00'), occupancy: 30, status: 'yellow' },
+      { time: new Date('2024-01-15T12:00:00'), occupancy: 45, status: 'red' },
+      // ... more data points
+    ]
+  },
+  {
+    id: 'example-meeting-b',
+    name: 'Meeting Room B',
+    maxCapacity: 20,
+    exampleData: [
+      { time: new Date('2024-01-15T09:00:00'), occupancy: 2, status: 'green' },
+      { time: new Date('2024-01-15T10:00:00'), occupancy: 8, status: 'green' },
+      { time: new Date('2024-01-15T11:00:00'), occupancy: 12, status: 'yellow' },
+      { time: new Date('2024-01-15T12:00:00'), occupancy: 18, status: 'red' },
+      // ... more data points
+    ]
+  },
+  // ... more example rooms
+];
+```
+
+### Data Structure
+
+Each example room includes:
+- **time**: Timestamp for each data point (Date object)
+- **occupancy**: Number of people in the room (integer)
+- **status**: Color-coded status indicator
+  - `green`: 0-40% capacity (relatively empty)
+  - `yellow`: 41-75% capacity (moderately full)
+  - `red`: 76-100% capacity (mostly full)
+
+### Integration with WebSocketService
+
+The WebSocketService manages the switch between live and example data:
+
+```typescript
+class WebSocketService {
+  private exampleDataService: ExampleDataService;
+  private useExampleData: boolean = false;
+  
+  async connect(): Promise<void> {
+    try {
+      // Attempt to connect to backend
+      await this.establishConnection();
+    } catch (error) {
+      // After max retries, fall back to example data
+      this.switchToExampleData();
+    }
+  }
+  
+  switchToExampleData(): void {
+    this.useExampleData = true;
+    this.disconnect(); // Close any existing connection
+    
+    // Load example rooms and data
+    const rooms = this.exampleDataService.getExampleRooms();
+    this.notifyRoomsLoaded(rooms);
+    
+    // Optionally simulate real-time updates
+    this.exampleDataService.simulateRealTimeUpdates((update) => {
+      this.handleMessage(update);
+    });
+  }
+  
+  switchToLiveData(): void {
+    this.useExampleData = false;
+    this.exampleDataService.stopSimulation();
+    this.connect(); // Reconnect to backend
+  }
+}
+```
+
+### User Experience
+
+When using example data:
+1. A persistent banner displays "Using example data" at the top of the dashboard
+2. The banner includes a "Try reconnecting" button to attempt switching back to live data
+3. All dashboard functionality works identically to live data mode
+4. Room selection, graph updates, and status colors function normally
+5. No indication to the user that data isn't "real" except for the banner
+
+### Automatic Fallback Logic
+
+```typescript
+// Pseudo-algorithm for fallback logic
+PROCEDURE handleConnectionFailure()
+  retryCount ← 0
+  maxRetries ← 3
+  
+  WHILE retryCount < maxRetries DO
+    WAIT exponentialBackoff(retryCount)
+    
+    TRY
+      connect()
+      RETURN Success
+    CATCH error
+      retryCount ← retryCount + 1
+      LOG error
+    END TRY
+  END WHILE
+  
+  // Max retries exceeded
+  switchToExampleData()
+  displayNotification("Using example data - backend unavailable")
+END PROCEDURE
+```
+
+### Development and Testing Benefits
+
+- Frontend developers can work without backend infrastructure
+- UI/UX testing with consistent, predictable data
+- Demo presentations with reliable sample data
+- Property-based testing with controlled data sets
+- No risk of corrupting production data during development
+
+
 
 ### Property 1: Occupancy Bounds
 
@@ -378,6 +611,30 @@ For any room receiving rapid occupancy updates, the Dashboard should process at 
 
 **Validates: Requirement 10.2**
 
+### Property 20: Example Data Isolation
+
+For any operation using example data, no data should be written to or read from the server database
+
+**Validates: Example data feature requirement**
+
+### Property 21: Example Data Status Consistency
+
+For all example data points, the status color (green/yellow/red) should match the occupancy percentage: green (0-40%), yellow (41-75%), red (76-100%)
+
+**Validates: Example data feature requirement**
+
+### Property 22: Automatic Fallback to Example Data
+
+For any WebSocket connection failure after maximum retry attempts, the system should automatically switch to example data mode
+
+**Validates: Example data feature requirement**
+
+### Property 23: Example Data Indicator Visibility
+
+For any period while using example data, a visible indicator should inform the user that example data is being displayed
+
+**Validates: Example data feature requirement**
+
 ## Error Handling
 
 ### Error Scenario 1: WebSocket Connection Failure
@@ -404,6 +661,12 @@ For any room receiving rapid occupancy updates, the Dashboard should process at 
 **Response**: Display "Room unavailable" message in graph area
 **Recovery**: Refresh room list from backend; auto-select first available room
 
+### Error Scenario 5: Backend Unavailable - Example Data Fallback
+
+**Condition**: WebSocket connection fails after maximum retry attempts (3 attempts with exponential backoff)
+**Response**: Automatically switch to example data mode; display "Using example data" indicator banner
+**Recovery**: Continue attempting to reconnect to backend in background; when connection restored, offer user option to switch back to live data
+
 ## Testing Strategy
 
 ### Unit Testing Approach
@@ -425,6 +688,8 @@ Coverage goal: 85% for business logic, 70% for UI components
 2. Data point sorting maintains chronological order for any input sequence
 3. Occupancy percentage calculation never produces values outside [0, 100] range
 4. WebSocket reconnection backoff never exceeds maximum delay
+5. Example data status colors match occupancy thresholds for all data points
+6. Switching between live and example data modes maintains UI consistency
 
 ### Integration Testing Approach
 
@@ -433,6 +698,10 @@ Test component interactions and data flow:
 - Room selection updates graph data and subscribes to correct room
 - Multiple rapid updates don't cause race conditions or stale data
 - Connection loss and recovery maintains data consistency
+- Automatic fallback to example data when backend unavailable
+- Manual switching between live and example data modes
+- Example data mode displays correct indicator banner
+- Example data never attempts to write to backend
 
 Use Cypress or Playwright for end-to-end testing with mocked WebSocket server
 

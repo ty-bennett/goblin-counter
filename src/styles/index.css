@@ -1,0 +1,303 @@
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* Example Data Banner */
+.example-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #FFD60A;
+  color: #1d1d1f;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard Container */
+.dashboard-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-top: 3rem;
+}
+
+.dashboard-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2rem;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Graph Section */
+.graph-section {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.graph-section:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.graph-header {
+  margin-bottom: 1.5rem;
+}
+
+.room-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1d1d1f;
+}
+
+.current-occupancy {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.occupancy-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #32CD32;
+  line-height: 1;
+}
+
+.occupancy-label {
+  font-size: 1.125rem;
+  color: #86868b;
+  font-weight: 400;
+}
+
+.graph-container {
+  width: 100%;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.occupancy-graph {
+  width: 100%;
+  height: 100%;
+}
+
+.data-point {
+  transition: r 0.2s ease;
+  cursor: pointer;
+}
+
+.data-point:hover {
+  r: 6;
+}
+
+.graph-empty,
+.no-room-selected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #86868b;
+  font-size: 1.125rem;
+}
+
+/* Room List Section */
+.room-list-section {
+  background: white;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.room-list-section:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.room-list-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1d1d1f;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for room list */
+.room-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.room-list::-webkit-scrollbar-track {
+  background: #f5f5f7;
+  border-radius: 3px;
+}
+
+.room-list::-webkit-scrollbar-thumb {
+  background: #d1d1d6;
+  border-radius: 3px;
+}
+
+.room-list::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a6;
+}
+
+/* Room Card */
+.room-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f5f5f7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.room-card:hover {
+  background: #e8e8ed;
+  transform: translateY(-2px);
+}
+
+.room-card.selected {
+  background: #e3f2fd;
+  border-color: #32CD32;
+  box-shadow: 0 2px 8px rgba(50, 205, 50, 0.2);
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.room-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.room-name-small {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-occupancy {
+  font-size: 0.8125rem;
+  color: #86868b;
+  font-weight: 400;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+
+  .room-list-section {
+    order: -1;
+  }
+
+  .room-list {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    margin-top: 4rem;
+  }
+
+  .dashboard-title {
+    font-size: 2rem;
+  }
+
+  .graph-section {
+    padding: 1.5rem;
+  }
+
+  .occupancy-number {
+    font-size: 2.5rem;
+  }
+
+  .occupancy-label {
+    font-size: 1rem;
+  }
+
+  .graph-container {
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: 1rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.75rem;
+  }
+
+  .graph-section,
+  .room-list-section {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .occupancy-number {
+    font-size: 2rem;
+  }
+
+  .room-name {
+    font-size: 1.25rem;
+  }
+}
