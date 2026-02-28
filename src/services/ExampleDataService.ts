@@ -8,29 +8,29 @@
 
 import {
   Room,
-  RoomStatus,
+  //RoomStatus,
   OccupancyDataPoint,
   OccupancyUpdate,
   calculateRoomStatus,
-} from '../models/types';
+} from '../models/types'
 
 /**
  * Example data point with status color
  */
 interface ExampleDataPoint {
-  time: Date;
-  occupancy: number;
-  status: 'green' | 'yellow' | 'red';
+  time: Date
+  occupancy: number
+  status: 'green' | 'yellow' | 'red'
 }
 
 /**
  * Example room with pre-defined data
  */
 interface ExampleRoom {
-  id: string;
-  name: string;
-  maxCapacity: number;
-  exampleData: ExampleDataPoint[];
+  id: string
+  name: string
+  maxCapacity: number
+  exampleData: ExampleDataPoint[]
 }
 
 /**
@@ -41,57 +41,57 @@ function generateExampleData(
   maxCapacity: number,
   pattern: 'busy' | 'moderate' | 'quiet'
 ): ExampleDataPoint[] {
-  const data: ExampleDataPoint[] = [];
-  const now = new Date();
-  const hoursToGenerate = 24;
+  const data: ExampleDataPoint[] = []
+  const now = new Date()
+  const hoursToGenerate = 24
 
   for (let i = hoursToGenerate; i >= 0; i--) {
-    const time = new Date(now.getTime() - i * 60 * 60 * 1000);
-    let occupancy: number;
+    const time = new Date(now.getTime() - i * 60 * 60 * 1000)
+    let occupancy: number
 
     // Generate different patterns based on room type
-    const hour = time.getHours();
+    const hour = time.getHours()
     if (pattern === 'busy') {
       // Busy room: peaks during work hours (9am-5pm)
       if (hour >= 9 && hour <= 17) {
-        occupancy = Math.floor(maxCapacity * (0.6 + Math.random() * 0.35));
+        occupancy = Math.floor(maxCapacity * (0.6 + Math.random() * 0.35))
       } else {
-        occupancy = Math.floor(maxCapacity * (0.1 + Math.random() * 0.2));
+        occupancy = Math.floor(maxCapacity * (0.1 + Math.random() * 0.2))
       }
     } else if (pattern === 'moderate') {
       // Moderate room: steady usage with some variation
       if (hour >= 9 && hour <= 17) {
-        occupancy = Math.floor(maxCapacity * (0.3 + Math.random() * 0.4));
+        occupancy = Math.floor(maxCapacity * (0.3 + Math.random() * 0.4))
       } else {
-        occupancy = Math.floor(maxCapacity * (0.05 + Math.random() * 0.15));
+        occupancy = Math.floor(maxCapacity * (0.05 + Math.random() * 0.15))
       }
     } else {
       // Quiet room: low usage throughout
       if (hour >= 9 && hour <= 17) {
-        occupancy = Math.floor(maxCapacity * (0.1 + Math.random() * 0.25));
+        occupancy = Math.floor(maxCapacity * (0.1 + Math.random() * 0.25))
       } else {
-        occupancy = Math.floor(maxCapacity * Math.random() * 0.1);
+        occupancy = Math.floor(maxCapacity * Math.random() * 0.1)
       }
     }
 
     // Ensure occupancy doesn't exceed capacity
-    occupancy = Math.min(occupancy, maxCapacity);
+    occupancy = Math.min(occupancy, maxCapacity)
 
     // Calculate status color based on occupancy percentage
-    const percentage = (occupancy / maxCapacity) * 100;
-    let status: 'green' | 'yellow' | 'red';
+    const percentage = (occupancy / maxCapacity) * 100
+    let status: 'green' | 'yellow' | 'red'
     if (percentage <= 40) {
-      status = 'green';
+      status = 'green'
     } else if (percentage <= 75) {
-      status = 'yellow';
+      status = 'yellow'
     } else {
-      status = 'red';
+      status = 'red'
     }
 
-    data.push({ time, occupancy, status });
+    data.push({ time, occupancy, status })
   }
 
-  return data;
+  return data
 }
 
 /**
@@ -117,15 +117,15 @@ const EXAMPLE_ROOMS: ExampleRoom[] = [
     maxCapacity: 10,
     exampleData: generateExampleData(10, 'quiet'),
   },
-];
+]
 
 /**
  * ExampleDataService class
  * Provides example data and optional real-time simulation
  */
 export class ExampleDataService {
-  private simulationInterval: NodeJS.Timeout | null = null;
-  private simulationCallback: ((update: OccupancyUpdate) => void) | null = null;
+  private simulationInterval: NodeJS.Timeout | null = null
+  private simulationCallback: ((update: OccupancyUpdate) => void) | null = null
 
   /**
    * Get all example rooms
@@ -136,7 +136,7 @@ export class ExampleDataService {
     return EXAMPLE_ROOMS.map((exampleRoom) => {
       // Get the most recent data point (last in array)
       const latestData =
-        exampleRoom.exampleData[exampleRoom.exampleData.length - 1];
+        exampleRoom.exampleData[exampleRoom.exampleData.length - 1]
 
       return {
         id: exampleRoom.id,
@@ -144,9 +144,12 @@ export class ExampleDataService {
         currentOccupancy: latestData.occupancy,
         maxCapacity: exampleRoom.maxCapacity,
         lastUpdated: latestData.time,
-        status: calculateRoomStatus(latestData.occupancy, exampleRoom.maxCapacity),
-      };
-    });
+        status: calculateRoomStatus(
+          latestData.occupancy,
+          exampleRoom.maxCapacity
+        ),
+      }
+    })
   }
 
   /**
@@ -162,13 +165,13 @@ export class ExampleDataService {
     roomId: string,
     hours: number = 24
   ): OccupancyDataPoint[] {
-    const exampleRoom = EXAMPLE_ROOMS.find((room) => room.id === roomId);
+    const exampleRoom = EXAMPLE_ROOMS.find((room) => room.id === roomId)
     if (!exampleRoom) {
-      return [];
+      return []
     }
 
-    const now = new Date();
-    const cutoffTime = new Date(now.getTime() - hours * 60 * 60 * 1000);
+    const now = new Date()
+    const cutoffTime = new Date(now.getTime() - hours * 60 * 60 * 1000)
 
     // Filter data to the specified time range and transform to OccupancyDataPoint
     return exampleRoom.exampleData
@@ -177,7 +180,7 @@ export class ExampleDataService {
         timestamp: dataPoint.time,
         count: dataPoint.occupancy,
         roomId: exampleRoom.id,
-      }));
+      }))
   }
 
   /**
@@ -189,32 +192,29 @@ export class ExampleDataService {
    */
   simulateRealTimeUpdates(callback: (update: OccupancyUpdate) => void): void {
     // Stop any existing simulation
-    this.stopSimulation();
+    this.stopSimulation()
 
-    this.simulationCallback = callback;
+    this.simulationCallback = callback
 
     // Generate updates every 5 seconds
     this.simulationInterval = setInterval(() => {
       // Pick a random room
       const randomRoom =
-        EXAMPLE_ROOMS[Math.floor(Math.random() * EXAMPLE_ROOMS.length)];
+        EXAMPLE_ROOMS[Math.floor(Math.random() * EXAMPLE_ROOMS.length)]
 
       // Get current occupancy
       const latestData =
-        randomRoom.exampleData[randomRoom.exampleData.length - 1];
-      let newOccupancy = latestData.occupancy;
+        randomRoom.exampleData[randomRoom.exampleData.length - 1]
+      let newOccupancy = latestData.occupancy
 
       // Randomly increase or decrease occupancy by 1-3 people
-      const change = Math.floor(Math.random() * 3) + 1;
-      const isEntry = Math.random() > 0.5;
+      const change = Math.floor(Math.random() * 3) + 1
+      const isEntry = Math.random() > 0.5
 
       if (isEntry) {
-        newOccupancy = Math.min(
-          newOccupancy + change,
-          randomRoom.maxCapacity
-        );
+        newOccupancy = Math.min(newOccupancy + change, randomRoom.maxCapacity)
       } else {
-        newOccupancy = Math.max(newOccupancy - change, 0);
+        newOccupancy = Math.max(newOccupancy - change, 0)
       }
 
       // Create update message
@@ -226,7 +226,7 @@ export class ExampleDataService {
           timestamp: new Date().toISOString(),
           changeType: isEntry ? 'entry' : 'exit',
         },
-      };
+      }
 
       // Update the example data (in-memory only)
       randomRoom.exampleData.push({
@@ -238,18 +238,18 @@ export class ExampleDataService {
             : (newOccupancy / randomRoom.maxCapacity) * 100 <= 75
               ? 'yellow'
               : 'red',
-      });
+      })
 
       // Keep only last 25 hours of data
       if (randomRoom.exampleData.length > 25) {
-        randomRoom.exampleData.shift();
+        randomRoom.exampleData.shift()
       }
 
       // Call the callback with the update
       if (this.simulationCallback) {
-        this.simulationCallback(update);
+        this.simulationCallback(update)
       }
-    }, 5000);
+    }, 5000)
   }
 
   /**
@@ -258,9 +258,9 @@ export class ExampleDataService {
    */
   stopSimulation(): void {
     if (this.simulationInterval) {
-      clearInterval(this.simulationInterval);
-      this.simulationInterval = null;
+      clearInterval(this.simulationInterval)
+      this.simulationInterval = null
     }
-    this.simulationCallback = null;
+    this.simulationCallback = null
   }
 }

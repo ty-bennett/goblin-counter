@@ -89,22 +89,21 @@ function App() {
     }
   }
 
-  const selectedRoom = rooms.find(r => r.id === selectedRoomId)
-  const currentOccupancy = occupancyData.length > 0 
-    ? occupancyData[occupancyData.length - 1].count 
-    : selectedRoom?.currentOccupancy || 0
+  const selectedRoom = rooms.find((r) => r.id === selectedRoomId)
+  const currentOccupancy =
+    occupancyData.length > 0
+      ? occupancyData[occupancyData.length - 1].count
+      : selectedRoom?.currentOccupancy || 0
 
   return (
     <div className="app">
       {isExampleMode && (
-        <div className="example-banner">
-          Using example data
-        </div>
+        <div className="example-banner">Using example data</div>
       )}
-      
+
       <div className="dashboard-container">
         <h1 className="dashboard-title">Room Occupancy</h1>
-        
+
         <div className="dashboard-content">
           {/* Occupancy Graph */}
           <div className="graph-section">
@@ -114,11 +113,13 @@ function App() {
                   <h2 className="room-name">{selectedRoom.name}</h2>
                   <div className="current-occupancy">
                     <span className="occupancy-number">{currentOccupancy}</span>
-                    <span className="occupancy-label">/ {selectedRoom.maxCapacity} people</span>
+                    <span className="occupancy-label">
+                      / {selectedRoom.maxCapacity} people
+                    </span>
                   </div>
                 </div>
                 <div className="graph-container">
-                  <OccupancyGraph 
+                  <OccupancyGraph
                     data={occupancyData}
                     maxCapacity={selectedRoom.maxCapacity}
                   />
@@ -134,10 +135,7 @@ function App() {
                   </div>
                 </div>
                 <div className="graph-container">
-                  <OccupancyGraph 
-                    data={[]}
-                    maxCapacity={100}
-                  />
+                  <OccupancyGraph data={[]} maxCapacity={100} />
                 </div>
               </>
             )}
@@ -148,13 +146,13 @@ function App() {
             <h3 className="room-list-title">Rooms</h3>
             {rooms.length > 0 ? (
               <div className="room-list">
-                {rooms.map(room => (
+                {rooms.map((room) => (
                   <div
                     key={room.id}
                     className={`room-card ${selectedRoomId === room.id ? 'selected' : ''}`}
                     onClick={() => handleRoomSelect(room.id)}
                   >
-                    <div 
+                    <div
                       className="status-indicator"
                       style={{ backgroundColor: getStatusColor(room.status) }}
                     />
@@ -168,9 +166,7 @@ function App() {
                 ))}
               </div>
             ) : (
-              <div className="no-rooms-message">
-                No rooms to show
-              </div>
+              <div className="no-rooms-message">No rooms to show</div>
             )}
           </div>
         </div>
@@ -180,7 +176,13 @@ function App() {
 }
 
 // Simple SVG-based occupancy graph component
-function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[], maxCapacity: number }) {
+function OccupancyGraph({
+  data,
+  maxCapacity,
+}: {
+  data: OccupancyDataPoint[]
+  maxCapacity: number
+}) {
   const width = 800
   const height = 300
   const padding = { top: 20, right: 20, bottom: 40, left: 50 }
@@ -190,29 +192,40 @@ function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[], max
   // Show flat line at zero when no data
   if (data.length === 0) {
     return (
-      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="occupancy-graph">
+      <svg
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${width} ${height}`}
+        className="occupancy-graph"
+      >
         <defs>
-          <linearGradient id="occupancyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <linearGradient
+            id="occupancyGradient"
+            x1="0%"
+            y1="0%"
+            x2="0%"
+            y2="100%"
+          >
             <stop offset="0%" stopColor="#32CD32" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#32CD32" stopOpacity="0.05" />
           </linearGradient>
         </defs>
-        
+
         <g transform={`translate(${padding.left}, ${padding.top})`}>
           {/* Y-axis grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+          {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
             <g key={ratio}>
               <line
                 x1={0}
-                y1={graphHeight - (graphHeight * ratio)}
+                y1={graphHeight - graphHeight * ratio}
                 x2={graphWidth}
-                y2={graphHeight - (graphHeight * ratio)}
+                y2={graphHeight - graphHeight * ratio}
                 stroke="#E5E5EA"
                 strokeWidth="1"
               />
               <text
                 x={-10}
-                y={graphHeight - (graphHeight * ratio)}
+                y={graphHeight - graphHeight * ratio}
                 textAnchor="end"
                 alignmentBaseline="middle"
                 fontSize="12"
@@ -253,35 +266,52 @@ function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[], max
 
   // Calculate scales
   const xScale = (index: number) => (index / (data.length - 1)) * graphWidth
-  const yScale = (value: number) => graphHeight - (value / maxCapacity) * graphHeight
+  const yScale = (value: number) =>
+    graphHeight - (value / maxCapacity) * graphHeight
 
   // Generate path for line
-  const linePath = data.map((point, index) => {
-    const x = xScale(index)
-    const y = yScale(point.count)
-    return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
-  }).join(' ')
+  const linePath = data
+    .map((point, index) => {
+      const x = xScale(index)
+      const y = yScale(point.count)
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
+    })
+    .join(' ')
 
   // Generate path for gradient fill
   const areaPath = `${linePath} L ${xScale(data.length - 1)} ${graphHeight} L 0 ${graphHeight} Z`
 
   // Format time labels
   const getTimeLabel = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    return timestamp.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    })
   }
 
   return (
-    <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="occupancy-graph">
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${width} ${height}`}
+      className="occupancy-graph"
+    >
       <defs>
-        <linearGradient id="occupancyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient
+          id="occupancyGradient"
+          x1="0%"
+          y1="0%"
+          x2="0%"
+          y2="100%"
+        >
           <stop offset="0%" stopColor="#32CD32" stopOpacity="0.3" />
           <stop offset="100%" stopColor="#32CD32" stopOpacity="0.05" />
         </linearGradient>
       </defs>
-      
+
       <g transform={`translate(${padding.left}, ${padding.top})`}>
         {/* Y-axis grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
           <g key={ratio}>
             <line
               x1={0}
@@ -305,10 +335,7 @@ function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[], max
         ))}
 
         {/* Area fill */}
-        <path
-          d={areaPath}
-          fill="url(#occupancyGradient)"
-        />
+        <path d={areaPath} fill="url(#occupancyGradient)" />
 
         {/* Line */}
         <path
