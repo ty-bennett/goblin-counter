@@ -29,7 +29,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  background-color: #FFD60A;
+  background-color: #ffd60a;
   color: #1d1d1f;
   padding: 0.75rem;
   text-align: center;
@@ -95,7 +95,7 @@ body {
 .occupancy-number {
   font-size: 3rem;
   font-weight: 700;
-  color: #32CD32;
+  color: #32cd32;
   line-height: 1;
 }
 
@@ -204,7 +204,7 @@ body {
 
 .room-card.selected {
   background: #e3f2fd;
-  border-color: #32CD32;
+  border-color: #32cd32;
   box-shadow: 0 2px 8px rgba(50, 205, 50, 0.2);
 }
 
