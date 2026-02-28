@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Popup, ZoomControl } from 'react-leaflet'
 import { RoomStatus } from '../models/types'
 
 export interface MapLocation {
@@ -45,7 +45,9 @@ export function MapView({ locations, selectedId, onSelect }: MapViewProps) {
       zoom={15}
       style={{ height: '100%', width: '100%', borderRadius: 14 }}
       scrollWheelZoom
+      zoomControl={false}
     >
+      <ZoomControl position="topright" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

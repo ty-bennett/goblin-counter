@@ -53,7 +53,7 @@ export function ChatbotPopup() {
       <button
         onClick={() => setOpen((o) => !o)}
         style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 1000,
+          position: 'absolute', bottom: 24, left: 24, zIndex: 1000,
           width: 56, height: 56, borderRadius: '50%',
           background: '#F56600', border: 'none', cursor: 'pointer',
           boxShadow: '0 4px 16px rgba(245,102,0,0.45)',
@@ -72,7 +72,7 @@ export function ChatbotPopup() {
       {/* Chat window */}
       {open && (
         <div style={{
-          position: 'fixed', bottom: 90, right: 24, zIndex: 999,
+          position: 'absolute', bottom: 90, left: 24, zIndex: 999,
           width: 360, height: 480, background: 'white',
           borderRadius: 18, boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
