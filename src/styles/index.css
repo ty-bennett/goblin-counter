@@ -237,6 +237,17 @@ body {
   font-weight: 400;
 }
 
+/* No Rooms Message */
+.no-rooms-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #86868b;
+  font-size: 1rem;
+  text-align: center;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .dashboard-content {
