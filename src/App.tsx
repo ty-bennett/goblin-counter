@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { Authenticator } from '@aws-amplify/ui-react'
 import '@aws-amplify/ui-react/styles.css'
 import './styles/index.css'
-import { Room, OccupancyDataPoint, RoomStatus, calculateRoomStatus } from './models/types'
-import { getLocationBusyness, chat } from './services/ApiService'
+import { Room, OccupancyDataPoint, RoomStatus } from './models/types'
+import { ExampleDataService } from './services/ExampleDataService'
+import { Chatbot } from './components'
 
 // Matches var.location_ids in Terraform
 const LOCATIONS: { id: string; name: string; maxCapacity: number }[] = [
@@ -13,22 +14,28 @@ const LOCATIONS: { id: string; name: string; maxCapacity: number }[] = [
   { id: 'study-room-a',        name: 'Study Room A', maxCapacity: 20 },
 ]
 
-function Dashboard({ signOut }: { signOut?: () => void }) {
-  const [rooms, setRooms] = useState<Room[]>(() =>
-    LOCATIONS.map((l) => ({
-      id: l.id,
-      name: l.name,
-      currentOccupancy: 0,
-      maxCapacity: l.maxCapacity,
-      lastUpdated: new Date(),
-      status: RoomStatus.EMPTY,
-    }))
-  )
-  const [selectedRoomId, setSelectedRoomId] = useState<string>(LOCATIONS[0].id)
-  const [occupancyData, setOccupancyData] = useState<OccupancyDataPoint[]>([])
-  const [chatInput, setChatInput] = useState('')
-  const [chatResponse, setChatResponse] = useState('')
-  const [chatLoading, setChatLoading] = useState(false)
+  // Get API key from environment variable
+  const apiKey = import.meta.env.VITE_BEDROCK_API_KEY
+
+  // Load example data on mount (commented out for default empty state)
+  useEffect(() => {
+    // Uncomment below to load example data
+    /*
+    const handleOccupancyUpdate = (update: OccupancyUpdate) => {
+      // Update room list
+      setRooms(prevRooms => 
+        prevRooms.map(room => {
+          if (room.id === update.roomId) {
+            return {
+              ...room,
+              currentOccupancy: update.data.currentOccupancy,
+              lastUpdated: new Date(update.data.timestamp),
+              status: calculateRoomStatus(update.data.currentOccupancy, room.maxCapacity)
+            }
+          }
+          return room
+        })
+      )
 
   const refreshBusyness = useCallback(async () => {
     const updates = await Promise.all(
@@ -200,6 +207,11 @@ function Dashboard({ signOut }: { signOut?: () => void }) {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Chatbot Section */}
+        <div className="chatbot-section">
+          <Chatbot apiKey={apiKey} />
         </div>
       </div>
     </div>
