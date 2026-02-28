@@ -76,6 +76,20 @@ SEED = {
         (8,  ts(h=2)), (5,  ts(h=4)),
         (10, ts(h=8)), (25, ts(h=9)), (38, ts(h=10)), (42, ts(h=11)),
     ],
+    # Chick-fil-A — lunch rush, slows after 2pm
+    "chick-fil-a": [
+        (98,  ts(2)),   (95,  ts(8)),   (88,  ts(15)),  (80,  ts(25)),
+        (65,  ts(40)),  (45,  ts(60)),
+        (5,   ts(h=2)), (2,   ts(h=4)), (0,   ts(h=6)),
+        (10,  ts(h=8)), (40,  ts(h=9)), (90,  ts(h=10)), (105, ts(h=11)),
+    ],
+    # Raising Cane's — always a line at lunch
+    "raising-canes": [
+        (85,  ts(3)),   (80,  ts(10)),  (72,  ts(18)),  (60,  ts(28)),
+        (48,  ts(42)),  (30,  ts(58)),
+        (3,   ts(h=2)), (1,   ts(h=4)), (0,   ts(h=6)),
+        (8,   ts(h=8)), (35,  ts(h=9)), (75,  ts(h=10)), (88,  ts(h=11)),
+    ],
 }
 
 written = 0
