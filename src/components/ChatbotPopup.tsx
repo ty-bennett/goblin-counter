@@ -35,9 +35,10 @@ export function ChatbotPopup() {
         .slice(0, -1)
         .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
         .join('\n')
+      const instructions = 'Reply in 1-3 short sentences. Always mention the location by name. Describe busyness using percentage of capacity (e.g. "60% full"), not raw headcounts.'
       const promptWithHistory = history
-        ? `Conversation so far:\n${history}\n\nUser: ${text}\n\nReply in 1-3 short sentences. Always mention the location by name.`
-        : `${text}\n\nReply in 1-3 short sentences. Always mention the location by name.`
+        ? `Conversation so far:\n${history}\n\nUser: ${text}\n\n${instructions}`
+        : `${text}\n\n${instructions}`
       const res = await chat(promptWithHistory)
       setMessages((m) => [...m, { id: Date.now() + 'a', role: 'assistant', content: res.response }])
     } catch {

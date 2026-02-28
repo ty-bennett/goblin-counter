@@ -79,10 +79,12 @@ SYSTEM_PROMPT = (
     "You help students and staff understand how busy campus locations are.\n\n"
     "Rules:\n"
     "- Only answer questions about Clemson campus location occupancy and busyness.\n"
-    "- Always call list_locations first if you are unsure of the exact locationId.\n"
+    "- list_locations already includes current percentFull for every location — use it for comparisons.\n"
+    "- ALWAYS rank or compare locations by percentFull, never by raw personCount.\n"
+    "- Always describe busyness using percentFull (e.g. '85% full'), never mention raw headcounts.\n"
+    "- Keep responses concise (1-3 sentences) and always name the location you are describing.\n"
     "- For questions outside your scope, respond exactly: "
-    "\"Sorry, I can't answer that. For more information, please visit https://www.clemson.edu\"\n"
-    "- Keep responses concise and friendly."
+    "\"Sorry, I can't answer that. For more information, please visit https://www.clemson.edu\""
 )
 
 
@@ -146,16 +148,29 @@ def _call_tool(name: str, inputs: dict) -> dict:
 
 def _tool_list_locations() -> dict:
     resp = dynamodb.Table(LOCATIONS_TABLE).scan()
-    locations = [
-        {
-            "locationId":  i["locationId"],
-            "name":        i.get("name", i["locationId"]),
-            "maxCapacity": int(i.get("maxCapacity", 0)),
+    locations = []
+    for i in resp.get("Items", []):
+        loc_id   = i["locationId"]
+        max_cap  = int(i.get("maxCapacity", 0)) or 100
+        # Fetch latest reading so comparisons use percentFull, not raw counts
+        reading  = dynamodb.Table(READINGS_TABLE).query(
+            KeyConditionExpression=Key("locationId").eq(loc_id),
+            ScanIndexForward=False,
+            Limit=1,
+        ).get("Items", [])
+        count    = int(reading[0].get("personCount", 0)) if reading else 0
+        pct      = round(count / max_cap * 100)
+        locations.append({
+            "locationId":  loc_id,
+            "name":        i.get("name", loc_id),
+            "maxCapacity": max_cap,
+            "personCount": count,
+            "percentFull": pct,
             "building":    i.get("building", ""),
             "floor":       i.get("floor", ""),
-        }
-        for i in resp.get("Items", [])
-    ]
+        })
+    # Sort busiest first so ranking questions are easy to answer
+    locations.sort(key=lambda x: x["percentFull"], reverse=True)
     return {"locations": locations}
 
 
