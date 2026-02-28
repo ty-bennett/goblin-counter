@@ -1,116 +1,287 @@
-/* Global styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* ── Reset ───────────────────────────────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f7;
+  background: #f5f5f7;
   color: #1d1d1f;
 }
 
+/* ── App shell ───────────────────────────────────────────────────────────────── */
 .app {
   display: flex;
   flex-direction: column;
-  align-items: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 0 0 80px;          /* bottom room for chatbot button */
 }
 
-/* Example Data Banner */
-.example-banner {
-  position: fixed;
+/* ── Header ──────────────────────────────────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: white;
+  border-bottom: 1px solid #e5e5ea;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  background-color: #ffd60a;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  width: 42px; height: 42px;
+  background: #fff3eb;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: 700;
   color: #1d1d1f;
-  padding: 0.75rem;
-  text-align: center;
-  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.app-subtitle {
+  font-size: 12px;
+  color: #522D80;
   font-weight: 500;
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Dashboard Container */
-.dashboard-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  margin-top: 3rem;
-}
+.header-right { display: flex; gap: 10px; align-items: center; }
 
-.dashboard-title {
-  font-size: 2.5rem;
+.btn-admin {
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #F56600;
+  background: transparent;
+  color: #F56600;
+  font-size: 13px;
   font-weight: 600;
-  text-align: center;
-  margin-bottom: 2rem;
-  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-admin:hover { background: #F56600; color: white; }
+
+.admin-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #522D80;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.dashboard-content {
+.btn-signout {
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #e0e0e5;
+  background: transparent;
+  color: #555;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-signout:hover { background: #f5f5f7; }
+
+/* ── Metrics row ─────────────────────────────────────────────────────────────── */
+.metrics-row {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 2rem;
-  align-items: start;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 20px 28px 0;
 }
 
-/* Graph Section */
+.metric-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.metric-sub {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+/* ── Main grid ───────────────────────────────────────────────────────────────── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  padding: 20px 28px 0;
+  align-items: start;
+  flex: 1;
+}
+
+/* ── Map panel ───────────────────────────────────────────────────────────────── */
+.map-panel {
+  height: 480px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+  position: relative;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Room list section ───────────────────────────────────────────────────────── */
+.room-list-section {
+  background: white;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.room-list-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d1d6 transparent;
+}
+
+.room-list::-webkit-scrollbar { width: 4px; }
+.room-list::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 4px; }
+
+.room-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5f5f7;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 2px solid transparent;
+}
+
+.room-card:hover { background: #e8e8ed; transform: translateY(-1px); }
+.room-card.selected { background: #fff3eb; border-color: #F56600; }
+
+.status-indicator {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.room-info { flex: 1; min-width: 0; }
+
+.room-name-small {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-occupancy {
+  font-size: 11px;
+  color: #86868b;
+  margin-top: 1px;
+}
+
+.room-pct {
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.no-rooms-message {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+  font-size: 13px;
+}
+
+/* ── Graph section ───────────────────────────────────────────────────────────── */
 .graph-section {
   background: white;
   border-radius: 18px;
-  padding: 2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.3s ease;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 
-.graph-section:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-}
-
-.graph-header {
-  margin-bottom: 1.5rem;
-}
+.graph-header { margin-bottom: 10px; }
 
 .room-name {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 15px;
+  font-weight: 700;
   color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .current-occupancy {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .occupancy-number {
-  font-size: 3rem;
+  font-size: 28px;
   font-weight: 700;
-  color: #32cd32;
+  color: #F56600;
   line-height: 1;
 }
 
 .occupancy-label {
-  font-size: 1.125rem;
+  font-size: 13px;
   color: #86868b;
-  font-weight: 400;
 }
 
 .graph-container {
   width: 100%;
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 160px;
 }
 
 .occupancy-graph {
@@ -118,203 +289,20 @@ body {
   height: 100%;
 }
 
-.data-point {
-  transition: r 0.2s ease;
-  cursor: pointer;
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .main-grid   { grid-template-columns: 1fr; }
+  .map-panel   { height: 360px; }
+  .sidebar     { flex-direction: row; flex-wrap: wrap; }
+  .room-list-section, .graph-section { flex: 1; min-width: 280px; }
 }
 
-.data-point:hover {
-  r: 6;
-}
-
-.graph-empty,
-.no-room-selected {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  color: #86868b;
-  font-size: 1.125rem;
-}
-
-/* Room List Section */
-.room-list-section {
-  background: white;
-  border-radius: 18px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.3s ease;
-}
-
-.room-list-section:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-}
-
-.room-list-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #1d1d1f;
-}
-
-.room-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-/* Custom scrollbar for room list */
-.room-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.room-list::-webkit-scrollbar-track {
-  background: #f5f5f7;
-  border-radius: 3px;
-}
-
-.room-list::-webkit-scrollbar-thumb {
-  background: #d1d1d6;
-  border-radius: 3px;
-}
-
-.room-list::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a6;
-}
-
-/* Room Card */
-.room-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
-  background: #f5f5f7;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
-}
-
-.room-card:hover {
-  background: #e8e8ed;
-  transform: translateY(-2px);
-}
-
-.room-card.selected {
-  background: #e3f2fd;
-  border-color: #32cd32;
-  box-shadow: 0 2px 8px rgba(50, 205, 50, 0.2);
-}
-
-.status-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.room-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.room-name-small {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: #1d1d1f;
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.room-occupancy {
-  font-size: 0.8125rem;
-  color: #86868b;
-  font-weight: 400;
-}
-
-/* No Rooms Message */
-.no-rooms-message {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  color: #86868b;
-  font-size: 1rem;
-  text-align: center;
-}
-
-/* Chatbot Section */
-.chatbot-section {
-  margin-top: 2rem;
-  width: 100%;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .dashboard-content {
-    grid-template-columns: 1fr;
-  }
-
-  .room-list-section {
-    order: -1;
-  }
-
-  .room-list {
-    max-height: 300px;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-container {
-    margin-top: 4rem;
-  }
-
-  .dashboard-title {
-    font-size: 2rem;
-  }
-
-  .graph-section {
-    padding: 1.5rem;
-  }
-
-  .occupancy-number {
-    font-size: 2.5rem;
-  }
-
-  .occupancy-label {
-    font-size: 1rem;
-  }
-
-  .graph-container {
-    height: 250px;
-  }
-}
-
-@media (max-width: 480px) {
-  .app {
-    padding: 1rem;
-  }
-
-  .dashboard-title {
-    font-size: 1.75rem;
-  }
-
-  .graph-section,
-  .room-list-section {
-    padding: 1rem;
-    border-radius: 12px;
-  }
-
-  .occupancy-number {
-    font-size: 2rem;
-  }
-
-  .room-name {
-    font-size: 1.25rem;
-  }
+@media (max-width: 640px) {
+  .app-header  { padding: 12px 16px; }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); padding: 16px 16px 0; gap: 10px; }
+  .main-grid   { padding: 16px 16px 0; gap: 14px; }
+  .metric-value { font-size: 22px; }
+  .map-panel   { height: 280px; }
+  .sidebar     { flex-direction: column; }
 }

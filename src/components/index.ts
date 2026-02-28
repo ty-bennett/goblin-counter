@@ -1,2 +1,5 @@
-// Components will be exported from here
 export { Chatbot } from './Chatbot'
+export { MapView } from './MapView'
+export { ChatbotPopup } from './ChatbotPopup'
+export { AdminPanel } from './AdminPanel'
+export type { MapLocation } from './MapView'

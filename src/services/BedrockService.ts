@@ -19,13 +19,11 @@ export interface BedrockResponse {
 
 export class BedrockService {
   private apiKey: string
-  private region: string
   private model: string
   private backendUrl: string
 
-  constructor(apiKey: string, region?: string, model?: string) {
+  constructor(apiKey: string, _region?: string, model?: string) {
     this.apiKey = apiKey
-    this.region = region || 'us-east-1'
     // Use inference profile instead of direct model ID for Claude 3.5 Sonnet v2
     this.model = model || 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
     this.backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://bedrock-runtime.us-east-1.amazonaws.com'
