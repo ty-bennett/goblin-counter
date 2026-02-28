@@ -1,2 +1,2 @@
 // Services will be exported from here
-export { ExampleDataService } from './ExampleDataService';
+export { ExampleDataService } from './ExampleDataService'
