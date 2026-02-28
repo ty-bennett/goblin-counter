@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './styles/index.css'
 import { Room, OccupancyDataPoint, RoomStatus } from './models/types'
 import { ExampleDataService } from './services/ExampleDataService'
+import { Chatbot } from './components'
 
 function App() {
   const [rooms] = useState<Room[]>([])
@@ -9,6 +10,9 @@ function App() {
   const [occupancyData, setOccupancyData] = useState<OccupancyDataPoint[]>([])
   const [isExampleMode] = useState(false)
   const [exampleService] = useState(() => new ExampleDataService())
+
+  // Get API key from environment variable
+  const apiKey = import.meta.env.VITE_BEDROCK_API_KEY
 
   // Load example data on mount (commented out for default empty state)
   useEffect(() => {
@@ -173,6 +177,11 @@ function App() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Chatbot Section */}
+        <div className="chatbot-section">
+          <Chatbot apiKey={apiKey} />
         </div>
       </div>
     </div>

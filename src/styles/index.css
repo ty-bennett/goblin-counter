@@ -248,6 +248,12 @@ body {
   text-align: center;
 }
 
+/* Chatbot Section */
+.chatbot-section {
+  margin-top: 2rem;
+  width: 100%;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .dashboard-content {
