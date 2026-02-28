@@ -8,11 +8,20 @@ terraform {
   }
 }
 
+terraform {
+  backend "s3" {
+    bucket = "goblin-counter-dev-533267325582"
+    key    = "terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
 provider "aws" {
   region = var.region
 }
 
 # ─── S3 ───────────────────────────────────────────────────────────────────────
+
 
 resource "aws_s3_bucket" "main" {
   bucket        = "${var.project_name}-${var.environment}-${data.aws_caller_identity.current.account_id}"
