@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react'
+import { Authenticator, ThemeProvider, createTheme, useAuthenticator } from '@aws-amplify/ui-react'
 import '@aws-amplify/ui-react/styles.css'
 import 'leaflet/dist/leaflet.css'
 import './styles/index.css'
@@ -11,6 +11,105 @@ import {
 import { MapView, MapLocation } from './components/MapView'
 import { ChatbotPopup } from './components/ChatbotPopup'
 import { AdminPanel } from './components/AdminPanel'
+
+// ── Clemson theme ─────────────────────────────────────────────────────────────
+
+const clemsonTheme = createTheme({
+  name: 'clemson',
+  tokens: {
+    colors: {
+      brand: {
+        primary: {
+          '10':  { value: '#fff3eb' },
+          '20':  { value: '#ffe4cc' },
+          '40':  { value: '#ffb380' },
+          '60':  { value: '#F56600' },
+          '80':  { value: '#d45a00' },
+          '100': { value: '#9e3d00' },
+        },
+      },
+    },
+    components: {
+      authenticator: {
+        router: {
+          borderWidth: { value: '0' },
+          boxShadow:   { value: 'none' },
+        },
+      },
+      button: {
+        primary: {
+          backgroundColor: { value: '#F56600' },
+          _hover: { backgroundColor: { value: '#d45a00' } },
+        },
+        link: { color: { value: '#F56600' } },
+      },
+      fieldcontrol: {
+        _focus: {
+          borderColor: { value: '#F56600' },
+          boxShadow:   { value: '0 0 0 2px rgba(245,102,0,0.2)' },
+        },
+      },
+      tabs: {
+        item: {
+          _active: { color: { value: '#F56600' }, borderColor: { value: '#F56600' } },
+          _hover:  { color: { value: '#F56600' } },
+        },
+      },
+    },
+  },
+})
+
+// ── Tiger paw SVG ─────────────────────────────────────────────────────────────
+
+function TigerPaw({ size = 22, color = 'white', opacity = 1 }: { size?: number; color?: string; opacity?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill={color} opacity={opacity}>
+      <ellipse cx="50" cy="67" rx="28" ry="22" />
+      <ellipse cx="20" cy="44" rx="10" ry="13" transform="rotate(-20 20 44)" />
+      <ellipse cx="38" cy="32" rx="10" ry="13" transform="rotate(-6 38 32)" />
+      <ellipse cx="57" cy="32" rx="10" ry="13" transform="rotate(6 57 32)" />
+      <ellipse cx="74" cy="44" rx="10" ry="13" transform="rotate(20 74 44)" />
+    </svg>
+  )
+}
+
+// ── Auth components ───────────────────────────────────────────────────────────
+
+const authComponents = {
+  Header() {
+    return (
+      <div className="login-header">
+        <div className="login-header-paws">
+          <TigerPaw size={28} color="white" opacity={0.8} />
+          <TigerPaw size={36} color="white" />
+          <TigerPaw size={28} color="white" opacity={0.8} />
+        </div>
+        <h1>Campus Occupancy</h1>
+        <p>Clemson University · Real-time tracking</p>
+      </div>
+    )
+  },
+}
+
+// ── App shell — shows splash when logged out, dashboard when logged in ─────────
+
+function AppShell() {
+  const { authStatus } = useAuthenticator((ctx) => [ctx.authStatus])
+
+  if (authStatus !== 'authenticated') {
+    return (
+      <div className="login-splash">
+        <div className="login-card">
+          <Authenticator components={authComponents} hideSignUp={false}>
+            {() => <></>}
+          </Authenticator>
+        </div>
+      </div>
+    )
+  }
+
+  return <Dashboard />
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -25,11 +124,10 @@ interface RoomRow {
   longitude: string
 }
 
-// ── Dashboard (always visible publicly) ──────────────────────────────────────
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 
 function Dashboard() {
-  const { user, signOut } = useAuthenticator((ctx) => [ctx.user])
-  const isAdmin = !!user
+  const { signOut } = useAuthenticator((ctx) => [ctx.user])
 
   const [locations, setLocations]         = useState<Location[]>([])
   const [busyness, setBusyness]           = useState<Record<string, LocationBusyness>>({})
@@ -37,9 +135,6 @@ function Dashboard() {
   const [occupancyData, setOccupancyData] = useState<OccupancyDataPoint[]>([])
   const [metrics, setMetrics]             = useState<MetricsPoint[]>([])
   const [showAdmin, setShowAdmin]         = useState(false)
-  const [showLogin, setShowLogin]         = useState(false)
-
-  // ── Fetch locations ──────────────────────────────────────────────────────────
 
   const fetchLocations = useCallback(async () => {
     const locs = await getLocations()
@@ -47,8 +142,6 @@ function Dashboard() {
   }, [])
 
   useEffect(() => { fetchLocations() }, [fetchLocations])
-
-  // ── Poll busyness ────────────────────────────────────────────────────────────
 
   const refreshBusyness = useCallback(async () => {
     if (locations.length === 0) return
@@ -63,8 +156,6 @@ function Dashboard() {
     const id = setInterval(refreshBusyness, 10_000)
     return () => clearInterval(id)
   }, [refreshBusyness])
-
-  // ── Metrics for selected location ─────────────────────────────────────────
 
   useEffect(() => {
     if (!selectedId) return
@@ -85,13 +176,6 @@ function Dashboard() {
       return [...prev.filter((p) => p.roomId === selectedId), point].slice(-25)
     })
   }, [busyness, selectedId])
-
-  // Close login overlay when user logs in successfully
-  useEffect(() => {
-    if (isAdmin) setShowLogin(false)
-  }, [isAdmin])
-
-  // ── Derived data ─────────────────────────────────────────────────────────────
 
   const rooms: RoomRow[] = locations.map((loc) => {
     const b = busyness[loc.locationId]
@@ -143,42 +227,32 @@ function Dashboard() {
 
   return (
     <div className="app">
-      {/* Header */}
       <header className="app-header">
         <div className="header-left">
-          <div className="header-logo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F56600" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
+          <div className="header-paws">
+            <TigerPaw size={16} color="white" opacity={0.6} />
+            <TigerPaw size={20} color="white" opacity={0.9} />
+            <TigerPaw size={16} color="white" opacity={0.6} />
           </div>
           <div>
-            <h1 className="app-title">Campus Occupancy</h1>
-            <p className="app-subtitle">Clemson University · Live</p>
+            <div className="app-title">Campus Occupancy</div>
+            <div className="app-subtitle">Clemson University · Live</div>
           </div>
         </div>
         <div className="header-right">
-          {isAdmin ? (
-            <>
-              <span className="admin-badge">Admin</span>
-              <button className="btn-admin" onClick={() => setShowAdmin(true)}>Manage</button>
-              <button className="btn-signout" onClick={signOut}>Sign Out</button>
-            </>
-          ) : (
-            <button className="btn-admin" onClick={() => setShowLogin(true)}>Admin Login</button>
-          )}
+          <span className="admin-badge">Admin</span>
+          <button className="btn-header-primary" onClick={() => setShowAdmin(true)}>Manage</button>
+          <button className="btn-header-ghost" onClick={signOut}>Sign Out</button>
         </div>
       </header>
 
-      {/* Metrics row */}
       <div className="metrics-row">
-        <MetricCard label="People on Campus" value={totalPeople.toString()} sub={`across ${rooms.length} locations`} color="#F56600" />
-        <MetricCard label="Avg Occupancy" value={`${avgPct}%`} sub="of total capacity" color="#FFD60A" />
-        <MetricCard label="Busiest Spot" value={busiest?.name ?? '—'} sub={busiest ? `${busiest.currentOccupancy} / ${busiest.maxCapacity}` : 'No data'} color="#FF6B35" />
-        <MetricCard label="At Capacity" value={fullCount.toString()} sub={`location${fullCount === 1 ? '' : 's'} currently full`} color="#FF3B30" />
+        <MetricCard label="People on Campus" value={totalPeople.toString()} sub={`across ${rooms.length} locations`}                                                   color="#F56600" border="#F56600" />
+        <MetricCard label="Avg Occupancy"    value={`${avgPct}%`}          sub="of total capacity"                                                                    color="#FFD60A" border="#FFD60A" />
+        <MetricCard label="Busiest Spot"     value={busiest?.name ?? '—'}  sub={busiest ? `${busiest.currentOccupancy} / ${busiest.maxCapacity}` : 'No data'}         color="#522D80" border="#522D80" />
+        <MetricCard label="At Capacity"      value={fullCount.toString()}  sub={`location${fullCount === 1 ? '' : 's'} currently full`}                               color="#FF3B30" border="#FF3B30" />
       </div>
 
-      {/* Main content */}
       <div className="main-grid">
         <div className="map-panel">
           <MapView locations={mapLocations} selectedId={selectedId} onSelect={handleSelect} />
@@ -186,9 +260,12 @@ function Dashboard() {
 
         <div className="sidebar">
           <div className="room-list-section">
-            <h3 className="room-list-title">Locations</h3>
+            <h3 className="room-list-title">
+              <TigerPaw size={13} color="#F56600" />
+              Locations
+            </h3>
             <div className="room-list">
-              {rooms.length === 0 && <div className="no-rooms-message">Loading locations…</div>}
+              {rooms.length === 0 && <div className="no-rooms-message">Loading…</div>}
               {rooms.map((room) => (
                 <div
                   key={room.id}
@@ -225,51 +302,19 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Admin manage modal (requires login) */}
-      {showAdmin && isAdmin && (
-        <AdminPanel onClose={() => setShowAdmin(false)} onRefresh={fetchLocations} />
-      )}
-
-      {/* Admin login overlay */}
-      {showLogin && !isAdmin && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 2000,
-            background: 'rgba(0,0,0,0.55)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-          onClick={(e) => e.target === e.currentTarget && setShowLogin(false)}
-        >
-          <div style={{ background: 'white', borderRadius: 20, padding: 32, width: 420, boxShadow: '0 16px 48px rgba(0,0,0,0.25)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f' }}>Admin Login</h2>
-                <p style={{ fontSize: 13, color: '#86868b', marginTop: 2 }}>Requires a @clemson.edu email</p>
-              </div>
-              <button onClick={() => setShowLogin(false)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#aaa' }}>×</button>
-            </div>
-            <Authenticator
-              hideSignUp={false}
-              components={{
-                Header() {
-                  return null
-                },
-              }}
-            />
-          </div>
-        </div>
-      )}
-
+      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} onRefresh={fetchLocations} />}
       <ChatbotPopup />
     </div>
   )
 }
 
-// ── Helper components ─────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function MetricCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
+function MetricCard({ label, value, sub, color, border }: {
+  label: string; value: string; sub: string; color: string; border: string
+}) {
   return (
-    <div className="metric-card">
+    <div className="metric-card" style={{ borderLeftColor: border }}>
       <div className="metric-value" style={{ color }}>{value}</div>
       <div className="metric-label">{label}</div>
       <div className="metric-sub">{sub}</div>
@@ -286,11 +331,9 @@ function statusColor(status: RoomStatus): string {
   }
 }
 
-// ── Occupancy graph ───────────────────────────────────────────────────────────
-
 function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[]; maxCapacity: number }) {
-  const width = 560, height = 200
-  const pad = { top: 16, right: 16, bottom: 32, left: 42 }
+  const width = 560, height = 180
+  const pad = { top: 12, right: 12, bottom: 28, left: 38 }
   const gw = width - pad.left - pad.right
   const gh = height - pad.top - pad.bottom
 
@@ -299,18 +342,18 @@ function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[]; max
       <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="occupancy-graph">
         <defs>
           <linearGradient id="og" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#F56600" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#F56600" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#F56600" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#F56600" stopOpacity="0.01" />
           </linearGradient>
         </defs>
         <g transform={`translate(${pad.left},${pad.top})`}>
           {[0, 0.5, 1].map((r) => (
             <g key={r}>
               <line x1={0} y1={gh - gh * r} x2={gw} y2={gh - gh * r} stroke="#E5E5EA" strokeWidth="1" />
-              <text x={-8} y={gh - gh * r} textAnchor="end" alignmentBaseline="middle" fontSize="11" fill="#aaa">{Math.round(maxCapacity * r)}</text>
+              <text x={-6} y={gh - gh * r} textAnchor="end" alignmentBaseline="middle" fontSize="10" fill="#bbb">{Math.round(maxCapacity * r)}</text>
             </g>
           ))}
-          <text x={gw / 2} y={gh / 2} textAnchor="middle" alignmentBaseline="middle" fontSize="13" fill="#aaa">Waiting for data…</text>
+          <text x={gw / 2} y={gh / 2} textAnchor="middle" alignmentBaseline="middle" fontSize="12" fill="#ccc">Waiting for data…</text>
         </g>
       </svg>
     )
@@ -325,26 +368,26 @@ function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[]; max
     <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="occupancy-graph">
       <defs>
         <linearGradient id="og" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#F56600" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#F56600" stopOpacity="0.02" />
+          <stop offset="0%" stopColor="#F56600" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#F56600" stopOpacity="0.01" />
         </linearGradient>
       </defs>
       <g transform={`translate(${pad.left},${pad.top})`}>
         {[0, 0.5, 1].map((r) => (
           <g key={r}>
             <line x1={0} y1={yScale(maxCapacity * r)} x2={gw} y2={yScale(maxCapacity * r)} stroke="#E5E5EA" strokeWidth="1" />
-            <text x={-8} y={yScale(maxCapacity * r)} textAnchor="end" alignmentBaseline="middle" fontSize="11" fill="#aaa">{Math.round(maxCapacity * r)}</text>
+            <text x={-6} y={yScale(maxCapacity * r)} textAnchor="end" alignmentBaseline="middle" fontSize="10" fill="#bbb">{Math.round(maxCapacity * r)}</text>
           </g>
         ))}
         <path d={area} fill="url(#og)" />
         <path d={line} fill="none" stroke="#F56600" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        {data.map((p, i) => <circle key={i} cx={xScale(i)} cy={yScale(p.count)} r="3.5" fill="#F56600" />)}
+        {data.map((p, i) => <circle key={i} cx={xScale(i)} cy={yScale(p.count)} r="3" fill="#F56600" />)}
         {data.length > 0 && (
           <>
-            <text x={0} y={gh + 22} textAnchor="start" fontSize="11" fill="#aaa">
+            <text x={0} y={gh + 18} textAnchor="start" fontSize="10" fill="#bbb">
               {data[0].timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
             </text>
-            <text x={gw} y={gh + 22} textAnchor="end" fontSize="11" fill="#aaa">
+            <text x={gw} y={gh + 18} textAnchor="end" fontSize="10" fill="#bbb">
               {data[data.length - 1].timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
             </text>
           </>
@@ -356,12 +399,12 @@ function OccupancyGraph({ data, maxCapacity }: { data: OccupancyDataPoint[]; max
 
 // ── Root ───────────────────────────────────────────────────────────────────────
 
-function App() {
+export default function App() {
   return (
-    <Authenticator.Provider>
-      <Dashboard />
-    </Authenticator.Provider>
+    <ThemeProvider theme={clemsonTheme}>
+      <Authenticator.Provider>
+        <AppShell />
+      </Authenticator.Provider>
+    </ThemeProvider>
   )
 }
-
-export default App
