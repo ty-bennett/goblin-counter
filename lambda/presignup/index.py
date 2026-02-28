@@ -1,6 +1,7 @@
 """
 Cognito Pre Sign-Up Lambda Trigger
 Rejects sign-ups from non-@clemson.edu email addresses.
+Auto-confirms valid users so no verification code is required.
 """
 
 ALLOWED_DOMAIN = "clemson.edu"
@@ -10,10 +11,10 @@ def handler(event, context):
     email = event.get("request", {}).get("userAttributes", {}).get("email", "")
 
     if not email.lower().endswith(f"@{ALLOWED_DOMAIN}"):
-        raise Exception(f"Sign-ups are restricted to @{ALLOWED_DOMAIN} email addresses.")
+        raise Exception("You are not a part of the clemson.edu domain.")
 
-    # Auto-confirm the user so they don't need email verification
-    event["response"]["autoConfirmUser"] = False
-    event["response"]["autoVerifyEmail"] = False
+    # Auto-confirm and auto-verify so no email code is required
+    event["response"]["autoConfirmUser"] = True
+    event["response"]["autoVerifyEmail"] = True
 
     return event

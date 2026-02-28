@@ -96,7 +96,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: 80px;
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────────── */
@@ -226,7 +225,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 16px;
-  padding: 16px 24px 0;
+  padding: 16px 24px 24px;
   align-items: start;
   flex: 1;
 }
@@ -292,6 +291,16 @@ body {
 }
 .room-card:hover { background: #fff3eb; border-color: #ffd6b0; }
 .room-card.selected { background: #fff3eb; border-color: #F56600; }
+
+.room-card-sub { margin-left: 12px; background: #f5f5f7; }
+.room-card-sub:hover { background: #fff3eb; border-color: #ffd6b0; }
+
+.sub-indent {
+  font-size: 10px;
+  color: #ccc;
+  flex-shrink: 0;
+  line-height: 1;
+}
 
 .status-indicator {
   width: 9px; height: 9px;
@@ -376,6 +385,67 @@ body {
 
 /* ── Admin panel ─────────────────────────────────────────────────────────────── */
 .btn-admin { display: none; } /* replaced by btn-header-primary */
+
+/* ── Footer ──────────────────────────────────────────────────────────────────── */
+.app-footer {
+  background: linear-gradient(135deg, #3a1f5c 0%, #522D80 100%);
+  padding: 28px 48px 28px;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.footer-buildings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.footer-building {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.building-drawing {
+  height: 90px;
+  width: auto;
+  max-width: 340px;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+.footer-building-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.footer-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.footer-tagline {
+  font-size: 14px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+
+.footer-subtagline {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  font-weight: 500;
+}
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {

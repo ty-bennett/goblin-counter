@@ -1,0 +1,97 @@
+<svg viewBox="0 0 700 560" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ground line -->
+  <line x1="38" y1="508" x2="662" y2="508" stroke-width="2.5"/>
+
+  <!-- Main building body -->
+  <rect x="58" y="268" width="584" height="240" stroke-width="2"/>
+
+  <!-- Floor divisions -->
+  <line x1="58" y1="428" x2="642" y2="428" stroke-width="1" stroke-opacity="0.7"/>
+  <line x1="58" y1="348" x2="642" y2="348" stroke-width="1" stroke-opacity="0.7"/>
+
+  <!-- 1st floor windows - left 4 -->
+  <rect x="78"  y="440" width="28" height="50" stroke-width="1"/>
+  <rect x="123" y="440" width="28" height="50" stroke-width="1"/>
+  <rect x="168" y="440" width="28" height="50" stroke-width="1"/>
+  <rect x="213" y="440" width="28" height="50" stroke-width="1"/>
+
+  <!-- 1st floor windows - right 4 -->
+  <rect x="454" y="440" width="28" height="50" stroke-width="1"/>
+  <rect x="499" y="440" width="28" height="50" stroke-width="1"/>
+  <rect x="544" y="440" width="28" height="50" stroke-width="1"/>
+  <rect x="589" y="440" width="28" height="50" stroke-width="1"/>
+
+  <!-- Central arched entrance -->
+  <rect x="306" y="418" width="88" height="90" stroke-width="1.5"/>
+  <path d="M306 418 Q350 382 394 418" stroke-width="1.5"/>
+
+  <!-- 2nd floor windows - left 5 -->
+  <rect x="78"  y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="123" y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="168" y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="213" y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="258" y="360" width="28" height="42" stroke-width="1"/>
+
+  <!-- 2nd floor windows - right 5 -->
+  <rect x="414" y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="459" y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="504" y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="549" y="360" width="28" height="42" stroke-width="1"/>
+  <rect x="594" y="360" width="28" height="42" stroke-width="1"/>
+
+  <!-- 3rd floor windows - left 5 -->
+  <rect x="78"  y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="123" y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="168" y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="213" y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="258" y="278" width="28" height="38" stroke-width="1"/>
+
+  <!-- 3rd floor windows - right 5 -->
+  <rect x="414" y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="459" y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="504" y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="549" y="278" width="28" height="38" stroke-width="1"/>
+  <rect x="594" y="278" width="28" height="38" stroke-width="1"/>
+
+  <!-- Left dormer / upper parapet projection -->
+  <rect x="60" y="242" width="115" height="28" stroke-width="1.5"/>
+  <path d="M60 242 L117 218 L175 242" stroke-width="1"/>
+  <rect x="96" y="246" width="40" height="20" stroke-width="0.8"/>
+
+  <!-- Right dormer / upper parapet projection -->
+  <rect x="525" y="242" width="115" height="28" stroke-width="1.5"/>
+  <path d="M525 242 L582 218 L640 242" stroke-width="1"/>
+  <rect x="564" y="246" width="40" height="20" stroke-width="0.8"/>
+
+  <!-- Clock tower body -->
+  <rect x="284" y="98" width="132" height="172" stroke-width="2"/>
+
+  <!-- Tower lower windows (2 pairs) -->
+  <rect x="299" y="228" width="34" height="38" stroke-width="1"/>
+  <rect x="367" y="228" width="34" height="38" stroke-width="1"/>
+  <rect x="299" y="273" width="34" height="28" stroke-width="1"/>
+  <rect x="367" y="273" width="34" height="28" stroke-width="1"/>
+
+  <!-- Clock face -->
+  <circle cx="350" cy="165" r="34" stroke-width="2"/>
+  <!-- Clock hands -->
+  <line x1="350" y1="165" x2="350" y2="140" stroke-width="2.5"/>
+  <line x1="350" y1="165" x2="370" y2="173" stroke-width="2"/>
+  <!-- Cardinal tick marks -->
+  <line x1="350" y1="133" x2="350" y2="139" stroke-width="1.5"/>
+  <line x1="382" y1="165" x2="376" y2="165" stroke-width="1.5"/>
+  <line x1="350" y1="197" x2="350" y2="191" stroke-width="1.5"/>
+  <line x1="318" y1="165" x2="324" y2="165" stroke-width="1.5"/>
+
+  <!-- Tower upper arcade section -->
+  <rect x="287" y="72" width="126" height="28" stroke-width="1.5"/>
+  <!-- Arched windows in arcade -->
+  <path d="M301 100 Q309 86 317 100" stroke-width="1"/>
+  <path d="M329 100 Q337 86 345 100" stroke-width="1"/>
+  <path d="M355 100 Q363 86 371 100" stroke-width="1"/>
+  <path d="M383 100 Q391 86 399 100" stroke-width="1"/>
+
+  <!-- Spire -->
+  <path d="M287 72 L350 16 L413 72" stroke-width="2"/>
+  <line x1="287" y1="72" x2="413" y2="72" stroke-width="1.5"/>
+</svg>

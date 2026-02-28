@@ -10,7 +10,7 @@ interface Message {
 export function ChatbotPopup() {
   const [open, setOpen]         = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    { id: '0', role: 'assistant', content: 'Hi! Ask me about busyness at any Clemson campus location.' },
+    { id: '0', role: 'assistant', content: 'Ask me about the occupancy of a location on campus.' },
   ])
   const [input, setInput]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -25,10 +25,20 @@ export function ChatbotPopup() {
     if (!text || loading) return
     setInput('')
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text }
-    setMessages((m) => [...m, userMsg])
+    const updatedMessages = [...messages, userMsg]
+    setMessages(updatedMessages)
     setLoading(true)
     try {
-      const res = await chat(text)
+      // Build prompt with full conversation history so the model maintains context.
+      // Instruct it to reply concisely and always name the location being discussed.
+      const history = updatedMessages
+        .slice(0, -1)
+        .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+        .join('\n')
+      const promptWithHistory = history
+        ? `Conversation so far:\n${history}\n\nUser: ${text}\n\nReply in 1-3 short sentences. Always mention the location by name.`
+        : `${text}\n\nReply in 1-3 short sentences. Always mention the location by name.`
+      const res = await chat(promptWithHistory)
       setMessages((m) => [...m, { id: Date.now() + 'a', role: 'assistant', content: res.response }])
     } catch {
       setMessages((m) => [...m, { id: Date.now() + 'e', role: 'assistant', content: 'Sorry, something went wrong. Try again.' }])
@@ -45,8 +55,8 @@ export function ChatbotPopup() {
         style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 1000,
           width: 56, height: 56, borderRadius: '50%',
-          background: '#522D80', border: 'none', cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(82,45,128,0.45)',
+          background: '#F56600', border: 'none', cursor: 'pointer',
+          boxShadow: '0 4px 16px rgba(245,102,0,0.45)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'transform 0.2s, box-shadow 0.2s',
         }}
