@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tiger Tracker — Architecture Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #f4f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    h1 {
+      text-align: center;
+      color: #522D80;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+    p.sub {
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+      margin-top: 0;
+      margin-bottom: 28px;
+    }
+    .diagram-wrap {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      padding: 40px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .mermaid { text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>Tiger Tracker</h1>
+  <p class="sub">AWS Architecture — Clemson University Campus Occupancy Dashboard</p>
+  <div class="diagram-wrap">
+    <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#F56600',
+  'primaryTextColor': '#fff',
+  'primaryBorderColor': '#c44400',
+  'lineColor': '#888',
+  'secondaryColor': '#522D80',
+  'tertiaryColor': '#f0f0f5'
+}}}%%
+flowchart TB
+
+  subgraph DEVICES["🖥️  Campus Devices"]
+    direction LR
+    PI["Raspberry Pi\npi-001"]
+    CAM["Laptop Cam\ncam-001"]
+    IOT["Future IoT\nDevices"]
+  end
+
+  subgraph BROWSER["🌐  User's Browser"]
+    direction LR
+    APP["Tiger Tracker\nReact + TypeScript + Vite"]
+  end
+
+  subgraph AWS["☁️  AWS  (us-east-1)"]
+    direction TB
+
+    subgraph HOSTING["Frontend Hosting"]
+      AMPLIFY["AWS Amplify\nCI/CD · CDN\nd27k0ldo79126u.amplifyapp.com"]
+    end
+
+    subgraph AUTH["Auth Layer"]
+      COGNITO["Cognito User Pool\nus-east-1_7IaNSzeOH\n@clemson.edu only"]
+      L_PRE["Lambda\ngoblin-counter-presignup\nDomain check · Auto-confirm"]
+    end
+
+    subgraph INGESTION["Data Ingestion Layer"]
+      APIGW_IN["API Gateway\nPOST /ingest"]
+      KINESIS["Kinesis\nData Stream"]
+      L_INGEST["Lambda\ngoblin-counter-dev-ingest\nValidate · Auto-register device · Write reading"]
+      L_KIN["Lambda\ngoblin-counter-kinesis-processor\nDecode · Resolve device→location · Upsert count"]
+    end
+
+    subgraph QUERY["Read / Query Layer"]
+      APIGW_API["API Gateway\n/locations  /devices  /metrics\n/busyness  /chat"]
+      L_API["Lambda\ngoblin-counter-dev-api\nLocations · Devices · Metrics"]
+      L_CHAT["Lambda\ngoblin-counter-dev-chat\nBedrock tool-use orchestration"]
+    end
+
+    subgraph AI["AI Layer"]
+      BEDROCK["Amazon Bedrock\nClaude 3.5 Haiku\nTools: list_locations · get_busyness · get_metrics"]
+    end
+
+    subgraph DATA["DynamoDB Tables"]
+      direction LR
+      DB_R["sensor-readings\nPK: locationId · SK: timestamp\nTTL 24–48 hrs"]
+      DB_L["locations\nPK: locationId\nname · maxCapacity · lat/lon"]
+      DB_D["devices\nPK: deviceId\nname · locationId · status"]
+    end
+  end
+
+  %% Device → Ingest
+  PI -->|POST /ingest| APIGW_IN
+  CAM -->|POST /ingest| APIGW_IN
+  IOT -->|PutRecord| KINESIS
+  PI -->|PutRecord| KINESIS
+
+  %% Ingest → Lambda → DynamoDB
+  APIGW_IN --> L_INGEST
+  L_INGEST --> DB_R
+  L_INGEST --> DB_D
+
+  %% Kinesis → Lambda → DynamoDB
+  KINESIS --> L_KIN
+  L_KIN --> DB_R
+
+  %% Browser → Amplify (served app)
+  AMPLIFY -->|"Serve static build"| APP
+
+  %% Browser ↔ Cognito
+  APP <-->|"Sign-up / Sign-in\nJWT token"| COGNITO
+  COGNITO -->|"Pre Sign-Up trigger"| L_PRE
+
+  %% Browser → Query API
+  APP -->|"GET /locations  GET /busyness\n10-second poll"| APIGW_API
+  APP -->|"POST /chat"| APIGW_API
+
+  %% Query API → Lambda
+  APIGW_API --> L_API
+  APIGW_API --> L_CHAT
+
+  %% API Lambda → DynamoDB
+  L_API --> DB_R
+  L_API --> DB_L
+  L_API --> DB_D
+
+  %% Chat Lambda ↔ Bedrock ↔ DynamoDB
+  L_CHAT <-->|"Converse API\n+ tool calls"| BEDROCK
+  L_CHAT --> DB_R
+  L_CHAT --> DB_L
+
+  %% Styling
+  classDef orange fill:#F56600,stroke:#c44400,color:#fff
+  classDef purple fill:#522D80,stroke:#3a1f5e,color:#fff
+  classDef blue   fill:#1a6bb5,stroke:#0f4a80,color:#fff
+  classDef teal   fill:#0e7c7b,stroke:#095857,color:#fff
+  classDef gray   fill:#f0f0f5,stroke:#ccc,color:#333
+  classDef green  fill:#2e7d32,stroke:#1b5e20,color:#fff
+
+  class PI,CAM,IOT orange
+  class APP gray
+  class AMPLIFY purple
+  class COGNITO,L_PRE purple
+  class APIGW_IN,APIGW_API blue
+  class KINESIS teal
+  class L_INGEST,L_KIN,L_API,L_CHAT orange
+  class BEDROCK green
+  class DB_R,DB_L,DB_D blue
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, flowchart: { curve: 'basis' } });
+  </script>
+</body>
+</html>
