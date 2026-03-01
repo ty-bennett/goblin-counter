@@ -2,7 +2,9 @@
 
 **Ty Bennett, Isaac Rostron, George Atkinson, Rayan Ahmed** · CUHackit 2026
 
-A real-time campus occupancy dashboard for Clemson University. Students and staff can see how busy any monitored location is right now, view historical trends, and ask an AI assistant questions about campus busyness — all restricted to `@clemson.edu` accounts.
+A real-time campus occupancy dashboard for Clemson University. Students and staff can see how busy any monitored location is right now, view historical trends, and ask an AI chatbot questions about campus busyness and it is all restricted to `@clemson.edu` accounts. 
+
+### The only say I got in the design of this app was to call it "goblin counter". Go Cocks!🐔🤙
 
 ---
 
